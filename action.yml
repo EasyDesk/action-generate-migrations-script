@@ -10,7 +10,7 @@ inputs:
     description: The path to the directory of the project containing the DbContexts
     required: true
   ef-core-version:
-    description: The version of the EF Core tools to use to generate scripts (default: latest)
+    description: The version of the EF Core tools to use to generate scripts (defaults to latest)
     required: false
     default: "*"
   build-configuration:
