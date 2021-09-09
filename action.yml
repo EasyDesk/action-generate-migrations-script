@@ -1,0 +1,47 @@
+name: Generate Migration Script with EF Core DbContexts
+description: Generate SQL scripts for all DbContext instances found inside a project
+
+inputs:
+  project-dir:
+    description: The path to the directory of the project containing the DbContexts
+    required: true
+  ef-core-version:
+    description: The version of the EF Core tools to use to generate scripts (default: latest)
+    required: false
+    default: *
+  build-configuration:
+    description: The build configuration to be used
+    required: false
+    default: Release
+  output-file:
+    description: The name of the generated SQL script
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install EF Core Tools version ${{ inputs.ef-core-version }}
+      shell: bash
+      run: dotnet tool install --global dotnet-ef --version ${{ inputs.ef-core-version }}
+    - name: Generate SQL scripts
+      shell: bash
+      run: |
+        for DB_CONTEXT in $(dotnet ef dbcontext list -s ${{ inputs.project-dir }} -p ${{ inputs.project-dir }} --no-build --configuration ${{ inputs.build-configuration }})
+        do
+          dotnet ef migrations script \
+            -i --no-build \
+            -o /tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql \
+            -p ${{ inputs.project-dir }} \
+            -s ${{ inputs.project-dir }} \
+            --configuration ${{ inputs.build-configuration }} \
+            -c ${DB_CONTEXT}
+        done
+    - name: Concat sql files
+      shell: bash
+      run: |
+        OUTPUT_FILE_NAME="${{ inputs.output-file }}"
+        mkdir -p "${OUTPUT_FILE_NAME%/*}"
+        for SQL_FILE_NAME in /tmp/sql-script-generation/*.sql
+        do
+          cat $SQL_FILE_NAME >> ${{ inputs.output-file }}
+        done
