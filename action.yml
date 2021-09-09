@@ -1,6 +1,10 @@
 name: Generate Migration Script with EF Core DbContexts
 description: Generate SQL scripts for all DbContext instances found inside a project
 
+branding:
+  color: gray-dark
+  icon: database
+
 inputs:
   project-dir:
     description: The path to the directory of the project containing the DbContexts
@@ -8,7 +12,7 @@ inputs:
   ef-core-version:
     description: The version of the EF Core tools to use to generate scripts (default: latest)
     required: false
-    default: *
+    default: "*"
   build-configuration:
     description: The build configuration to be used
     required: false
