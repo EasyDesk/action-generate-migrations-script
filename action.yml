@@ -9,6 +9,9 @@ inputs:
   project-dir:
     description: The path to the directory of the project containing the DbContexts
     required: true
+  output-file:
+    description: The name of the generated SQL script
+    required: true
   ef-core-version:
     description: The version of the EF Core tools to use to generate scripts (defaults to latest)
     required: false
@@ -17,9 +20,6 @@ inputs:
     description: The build configuration to be used
     required: false
     default: Release
-  output-file:
-    description: The name of the generated SQL script
-    required: true
 
 runs:
   using: composite
@@ -30,17 +30,12 @@ runs:
     - name: Generate SQL scripts
       shell: bash
       run: |
-        for DB_CONTEXT in $(dotnet ef dbcontext list -s ${{ inputs.project-dir }} -p ${{ inputs.project-dir }} --no-build --configuration ${{ inputs.build-configuration }})
-        do
-          dotnet ef migrations script \
-            -i --no-build \
-            -o /tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql \
-            -p ${{ inputs.project-dir }} \
-            -s ${{ inputs.project-dir }} \
-            --configuration ${{ inputs.build-configuration }} \
-            -c ${DB_CONTEXT}
+        ARGS="--no-build -s ${{ inputs.project-dir }} -p ${{ inputs.project-dir }} --configuration ${{ inputs.build-configuration }}"
+        DB_CONTEXT_LIST=`dotnet ef dbcontext list ${ARGS}`
+        for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
+          dotnet ef migrations script -i -c ${DB_CONTEXT} -o /tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql
         done
-    - name: Concat sql files
+    - name: Merge SQL scripts
       shell: bash
       run: |
         OUTPUT_FILE_NAME="${{ inputs.output-file }}"
