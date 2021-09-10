@@ -33,7 +33,7 @@ runs:
         ARGS="--no-build -s ${{ inputs.project-dir }} -p ${{ inputs.project-dir }} --configuration ${{ inputs.build-configuration }}"
         DB_CONTEXT_LIST=`dotnet ef dbcontext list ${ARGS}`
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
-          dotnet ef migrations script -i -c ${DB_CONTEXT} -o /tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql
+          dotnet ef migrations script -i -c ${DB_CONTEXT} -o /tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql ${ARGS}
         done
     - name: Merge SQL scripts
       shell: bash
