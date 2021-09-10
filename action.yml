@@ -1,5 +1,5 @@
 name: Generate Migration Script with EF Core DbContexts
-description: Generate SQL scripts for all DbContext instances found inside a project
+description: Generate an SQL script that applies migrations for a list of DbContext instances
 
 branding:
   color: gray-dark
@@ -7,19 +7,22 @@ branding:
 
 inputs:
   project-dir:
-    description: The path to the directory of the project containing the DbContexts
+    description: The path to the directory of the project containing the DbContexts.
     required: true
   output-file:
-    description: The name of the generated SQL script
+    description: The name of the generated SQL script.
     required: true
   ef-core-version:
-    description: The version of the EF Core tools to use to generate scripts (defaults to latest)
+    description: The version of the EF Core tools to use to generate scripts (defaults to latest).
     required: false
     default: "*"
   build-configuration:
-    description: The build configuration to be used
+    description: The build configuration to be used.
     required: false
     default: Release
+  db-context-list:
+    description: A whitespace separated list of the names of the DbContexts to be scripted. If left unset, all DbContexts in the app will be scripted.
+    required: false
 
 runs:
   using: composite
@@ -31,7 +34,11 @@ runs:
       shell: bash
       run: |
         ARGS="--no-build -s ${{ inputs.project-dir }} -p ${{ inputs.project-dir }} --configuration ${{ inputs.build-configuration }}"
-        DB_CONTEXT_LIST=`dotnet ef dbcontext list ${ARGS}`
+        if [[ -z "${{ inputs.db-context-list }}" ]] ; then
+          DB_CONTEXT_LIST=`dotnet ef dbcontext list ${ARGS}`
+        else
+          DB_CONTEXT_LIST=`echo "${{ inputs.db-context-list }}"`
+        fi
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
           dotnet ef migrations script -i -c ${DB_CONTEXT} -o /tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql ${ARGS}
         done
