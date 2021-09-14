@@ -40,7 +40,7 @@ runs:
           DB_CONTEXT_LIST=`echo "${{ inputs.db-context-list }}"`
         fi
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
-          dotnet ef migrations script -i -c ${DB_CONTEXT} -o /tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql ${ARGS}
+          dotnet ef migrations script -i -c "${DB_CONTEXT}" -o "/tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql" ${ARGS}
         done
     - name: Merge SQL scripts
       shell: bash
@@ -49,5 +49,5 @@ runs:
         mkdir -p "${OUTPUT_FILE_NAME%/*}"
         for SQL_FILE_NAME in /tmp/sql-script-generation/*.sql
         do
-          cat $SQL_FILE_NAME >> ${{ inputs.output-file }}
+          cat "$SQL_FILE_NAME" >> "${{ inputs.output-file }}"
         done
