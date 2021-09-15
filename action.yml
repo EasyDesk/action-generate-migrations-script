@@ -29,15 +29,15 @@ runs:
   steps:
     - name: Install EF Core Tools version ${{ inputs.ef-core-version }}
       shell: bash
-      run: dotnet tool install --global dotnet-ef --version ${{ inputs.ef-core-version }}
+      run: dotnet tool install --global dotnet-ef --version '${{ inputs.ef-core-version }}'
     - name: Generate SQL scripts
       shell: bash
       run: |
-        ARGS="--no-build -s ${{ inputs.project-dir }} -p ${{ inputs.project-dir }} --configuration ${{ inputs.build-configuration }}"
-        if [[ -z "${{ inputs.db-context-list }}" ]] ; then
+        ARGS='--no-build -s "${{ inputs.project-dir }}" -p "${{ inputs.project-dir }}" --configuration "${{ inputs.build-configuration }}"'
+        if [[ -z '${{ inputs.db-context-list }}' ]] ; then
           DB_CONTEXT_LIST=`dotnet ef dbcontext list ${ARGS}`
         else
-          DB_CONTEXT_LIST=`echo "${{ inputs.db-context-list }}"`
+          DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
         fi
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
           dotnet ef migrations script -i -c "${DB_CONTEXT}" -o "/tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql" ${ARGS}
@@ -45,9 +45,9 @@ runs:
     - name: Merge SQL scripts
       shell: bash
       run: |
-        OUTPUT_FILE_NAME="${{ inputs.output-file }}"
+        OUTPUT_FILE_NAME='${{ inputs.output-file }}'
         mkdir -p "${OUTPUT_FILE_NAME%/*}"
         for SQL_FILE_NAME in /tmp/sql-script-generation/*.sql
         do
-          cat "$SQL_FILE_NAME" >> "${{ inputs.output-file }}"
+          cat "$SQL_FILE_NAME" >> '${{ inputs.output-file }}'
         done
