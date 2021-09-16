@@ -35,6 +35,7 @@ runs:
       run: |
         ARGS='--no-build -s "${{ inputs.project-dir }}" -p "${{ inputs.project-dir }}" --configuration "${{ inputs.build-configuration }}"'
         if [[ -z '${{ inputs.db-context-list }}' ]] ; then
+          dotnet ef dbcontext info ${ARGS}
           DB_CONTEXT_LIST=`dotnet ef dbcontext list ${ARGS}`
         else
           DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
