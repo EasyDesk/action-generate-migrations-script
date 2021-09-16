@@ -43,12 +43,11 @@ runs:
         else
           DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
         fi
+        TEMP_OUTPUT_DIR="/tmp/sql-script-generation"
+        mkdir -p "${TEMP_OUTPUT_DIR}"
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
-          dotnet ef migrations script -i -c "${DB_CONTEXT}" -o "/tmp/sql-script-generation/migrate_${DB_CONTEXT}.sql" ${ARGS}
+          dotnet ef migrations script -i -c "${DB_CONTEXT}" -o "${TEMP_OUTPUT_DIR}/migrate_${DB_CONTEXT}.sql" ${ARGS}
         done
-    - name: Merge SQL scripts
-      shell: bash
-      run: |
         mkdir -p `dirname '${{ inputs.output-file }}'`
         touch '${{ inputs.output-file }}'
-        find /tmp/sql-script-generation -type f -iname '*.sql' -exec cat "{}" >> '${{ inputs.output-file }}' \;
+        find "${TEMP_OUTPUT_DIR}" -type f -iname '*.sql' -exec cat "{}" >> '${{ inputs.output-file }}' \;
