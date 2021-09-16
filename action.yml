@@ -49,9 +49,6 @@ runs:
     - name: Merge SQL scripts
       shell: bash
       run: |
-        OUTPUT_FILE_NAME='${{ inputs.output-file }}'
-        mkdir -p "${OUTPUT_FILE_NAME%/*}"
-        for SQL_FILE_NAME in /tmp/sql-script-generation/*.sql
-        do
-          cat "$SQL_FILE_NAME" >> '${{ inputs.output-file }}'
-        done
+        mkdir -p `dirname '${{ inputs.output-file }}'`
+        touch '${{ inputs.output-file }}'
+        find /tmp/sql-script-generation -type f -iname '*.sql' -exec cat "{}" >> '${{ inputs.output-file }}' \;
