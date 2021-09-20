@@ -33,21 +33,28 @@ runs:
     - name: Generate SQL scripts
       shell: bash
       run: |
-        ARGS='--no-build -s "${{ inputs.project-dir }}" -p "${{ inputs.project-dir }}" --configuration "${{ inputs.build-configuration }}"'
         if [[ -z '${{ inputs.db-context-list }}' ]] ; then
-          if dotnet ef dbcontext info ${ARGS} ; then
-            DB_CONTEXT_LIST=`dotnet ef dbcontext list ${ARGS}`
-          else
-            DB_CONTEXT_LIST=''
-          fi
+          DB_CONTEXT_LIST=""
+          dotnet ef dbcontext list --no-build -s '${{ inputs.project-dir }}' --configuration '${{ inputs.build-configuration }}' | tr -d "\r" | while read DB_CONTEXT ; do
+            if [[ "$DB_CONTEXT" =~ ^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$ ]] ; then
+              DB_CONTEXT_LIST="$DB_CONTEXT $DB_CONTEXT_LIST"
+            fi
+          done
         else
           DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
         fi
-        TEMP_OUTPUT_DIR="/tmp/sql-script-generation"
+        TEMP_OUTPUT_DIR="/tmp/sql-migrations"
         mkdir -p "${TEMP_OUTPUT_DIR}"
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
-          dotnet ef migrations script -i -c "${DB_CONTEXT}" -o "${TEMP_OUTPUT_DIR}/migrate_${DB_CONTEXT}.sql" ${ARGS}
+          dotnet ef migrations script \
+            -i --no-build \
+            -c "${DB_CONTEXT}" \
+            -s '${{ inputs.project-dir }}' \
+            -o "${TEMP_OUTPUT_DIR}/${DB_CONTEXT}.sql" \
+            --configuration '${{ inputs.build-configuration }}'
         done
         mkdir -p `dirname '${{ inputs.output-file }}'`
         touch '${{ inputs.output-file }}'
         find "${TEMP_OUTPUT_DIR}" -type f -iname '*.sql' -exec cat "{}" >> '${{ inputs.output-file }}' \;
+        rm -rf ${TEMP_OUTPUT_DIR}
+
