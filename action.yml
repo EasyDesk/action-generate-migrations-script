@@ -44,7 +44,7 @@ runs:
         else
           DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
         fi
-        TEMP_OUTPUT_DIR="/tmp/sql-migrations"
+        TEMP_OUTPUT_DIR="tmp/sql-migrations"
         mkdir -p "${TEMP_OUTPUT_DIR}"
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
           echo -n "Scripting DbContext '${DB_CONTEXT}'... "
