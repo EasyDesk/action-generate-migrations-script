@@ -46,6 +46,7 @@ runs:
         fi
         TEMP_OUTPUT_DIR="tmp/sql-migrations"
         mkdir -p "${TEMP_OUTPUT_DIR}"
+        echo "DbContext list: $DB_CONTEXT_LIST"
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
           echo -n "Scripting DbContext '${DB_CONTEXT}'... "
           dotnet ef migrations script \
