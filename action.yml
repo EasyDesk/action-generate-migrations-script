@@ -46,12 +46,14 @@ runs:
         TEMP_OUTPUT_DIR="/tmp/sql-migrations"
         mkdir -p "${TEMP_OUTPUT_DIR}"
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
+          echo -n "Scripting DbContext '${DB_CONTEXT}'... "
           dotnet ef migrations script \
             -i --no-build \
             -c "${DB_CONTEXT}" \
             -s '${{ inputs.project-dir }}' \
             -o "${TEMP_OUTPUT_DIR}/${DB_CONTEXT}.sql" \
             --configuration '${{ inputs.build-configuration }}'
+          echo "Done!"
         done
         mkdir -p `dirname '${{ inputs.output-file }}'`
         touch '${{ inputs.output-file }}'
