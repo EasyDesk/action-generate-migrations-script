@@ -54,6 +54,5 @@ runs:
         done
         mkdir -p `dirname '${{ inputs.output-file }}'`
         touch '${{ inputs.output-file }}'
-        find "${TEMP_OUTPUT_DIR}" -type f -iname '*.sql' -exec cat "{}" >> '${{ inputs.output-file }}' \;
+        cat ${TEMP_OUTPUT_DIR}/*.sql >> '${{ inputs.output-file }}'
         rm -rf ${TEMP_OUTPUT_DIR}
-
