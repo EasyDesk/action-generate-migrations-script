@@ -44,15 +44,16 @@ runs:
         mkdir -p "${TEMP_OUTPUT_DIR}"
         for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
           echo -n "Scripting DbContext '${DB_CONTEXT}'... "
+          OUTPUT_FILE="${TEMP_OUTPUT_DIR}/${DB_CONTEXT}.sql"
           dotnet ef migrations script \
             -i --no-build \
             -c "${DB_CONTEXT}" \
             -s '${{ inputs.project-dir }}' \
-            -o "${TEMP_OUTPUT_DIR}/${DB_CONTEXT}.sql" \
+            -o "${OUTPUT_FILE}" \
             --configuration '${{ inputs.build-configuration }}'
+          sed -i $'1s/^\uFEFF//' "${OUTPUT_FILE}" # Remove BOM
           echo "Done!"
         done
         mkdir -p `dirname '${{ inputs.output-file }}'`
         cat ${TEMP_OUTPUT_DIR}/*.sql > '${{ inputs.output-file }}'
-        sed -i '1s/^\xEF\xBB\xBF//' '${{ inputs.output-file }}' # Remove UTF-8 BOM
         rm -rf ${TEMP_OUTPUT_DIR}
