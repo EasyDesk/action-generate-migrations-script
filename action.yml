@@ -53,6 +53,6 @@ runs:
           echo "Done!"
         done
         mkdir -p `dirname '${{ inputs.output-file }}'`
-        touch '${{ inputs.output-file }}'
-        cat ${TEMP_OUTPUT_DIR}/*.sql >> '${{ inputs.output-file }}'
+        cat ${TEMP_OUTPUT_DIR}/*.sql > '${{ inputs.output-file }}'
+        sed -i '1s/^\xEF\xBB\xBF//' '${{ inputs.output-file }}' # Remove UTF-8 BOM
         rm -rf ${TEMP_OUTPUT_DIR}
