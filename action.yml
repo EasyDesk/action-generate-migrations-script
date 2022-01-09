@@ -41,6 +41,8 @@ runs:
           DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
         fi
 
+        echo "DbContexts to be scripted: $DB_CONTEXT_LIST"
+
         TEMP_OUTPUT_DIR="tmp/sql-migrations"
         mkdir -p "${TEMP_OUTPUT_DIR}"
         
