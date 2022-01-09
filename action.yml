@@ -52,6 +52,7 @@ runs:
             -i --no-build --no-transactions \
             -c "${DB_CONTEXT}" \
             -s '${{ inputs.project-dir }}' \
+            -p '${{ inputs.project-dir }}' \
             -o "${OUTPUT_FILE}" \
             --configuration '${{ inputs.build-configuration }}'
 
