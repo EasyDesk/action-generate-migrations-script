@@ -28,48 +28,42 @@ runs:
   using: composite
   steps:
     - name: Install EF Core Tools version ${{ inputs.ef-core-version }}
-      shell: bash
-      env:
-        DOTNET_NOLOGO: 'true'
-        DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
-      run: dotnet tool install --global dotnet-ef --version '${{ inputs.ef-core-version }}'
+      uses: EasyDesk/action-dotnet@v1
+      with:
+        script: dotnet tool install --global dotnet-ef --version '${{ inputs.ef-core-version }}'
     - name: Generate SQL scripts
-      shell: bash
-      env:
-        DOTNET_NOLOGO: 'true'
-        DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
-        DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 'true'
-      run: |
-        if [[ -z '${{ inputs.db-context-list }}' ]] ; then
-          DB_CONTEXT_LIST=`dotnet ef dbcontext list --no-build -s '${{ inputs.project-dir }}' --configuration '${{ inputs.build-configuration }}' |
-          tr -d "\r" |
-          grep -E "^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$"`
-        else
-          DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
-        fi
+      uses: EasyDesk/action-dotnet@v1
+      with:
+        script:  |
+          if [[ -z '${{ inputs.db-context-list }}' ]] ; then
+            DB_CONTEXT_LIST=`dotnet ef dbcontext list --no-build -s '${{ inputs.project-dir }}' --configuration '${{ inputs.build-configuration }}' |
+            tr -d "\r" |
+            grep -E "^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$"`
+          else
+            DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
+          fi
 
-        echo "DbContexts to be scripted: $DB_CONTEXT_LIST"
+          echo "DbContexts to be scripted: $DB_CONTEXT_LIST"
 
-        TEMP_OUTPUT_DIR="tmp/sql-migrations"
-        mkdir -p "${TEMP_OUTPUT_DIR}"
-        
-        for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
-          echo -n "Scripting DbContext '${DB_CONTEXT}'... "
-          OUTPUT_FILE="${TEMP_OUTPUT_DIR}/${DB_CONTEXT}.sql"
+          TEMP_OUTPUT_DIR="tmp/sql-migrations"
+          mkdir -p "${TEMP_OUTPUT_DIR}"
+          
+          for DB_CONTEXT in ${DB_CONTEXT_LIST} ; do
+            echo -n "Scripting DbContext '${DB_CONTEXT}'... "
+            OUTPUT_FILE="${TEMP_OUTPUT_DIR}/${DB_CONTEXT}.sql"
 
-          dotnet ef migrations script \
-            -i --no-build --no-transactions \
-            -c "${DB_CONTEXT}" \
-            -s '${{ inputs.project-dir }}' \
-            -p '${{ inputs.project-dir }}' \
-            -o "${OUTPUT_FILE}" \
-            --configuration '${{ inputs.build-configuration }}'
+            dotnet ef migrations script \
+              -i --no-build --no-transactions \
+              -c "${DB_CONTEXT}" \
+              -s '${{ inputs.project-dir }}' \
+              -p '${{ inputs.project-dir }}' \
+              -o "${OUTPUT_FILE}" \
+              --configuration '${{ inputs.build-configuration }}'
 
-          sed -i $'1s/^\uFEFF//' "${OUTPUT_FILE}" # Remove BOM
-          echo "Done!"
-        done
+            sed -i $'1s/^\uFEFF//' "${OUTPUT_FILE}" # Remove BOM
+            echo "Done!"
+          done
 
-        mkdir -p `dirname '${{ inputs.output-file }}'`
-        cat "${GITHUB_ACTION_PATH}/pre-script.sql" ${TEMP_OUTPUT_DIR}/*.sql "${GITHUB_ACTION_PATH}/post-script.sql" > '${{ inputs.output-file }}'
-        rm -rf ${TEMP_OUTPUT_DIR}
+          mkdir -p `dirname '${{ inputs.output-file }}'`
+          cat "${GITHUB_ACTION_PATH}/pre-script.sql" ${TEMP_OUTPUT_DIR}/*.sql "${GITHUB_ACTION_PATH}/post-script.sql" > '${{ inputs.output-file }}'
+          rm -rf ${TEMP_OUTPUT_DIR}
