@@ -33,14 +33,12 @@ runs:
         script: dotnet tool install --global dotnet-ef --version '${{ inputs.ef-core-version }}'
     - name: Generate SQL scripts
       uses: EasyDesk/action-dotnet@v1
-      env:
-        SCRIPTS_PATH: ${{ env.GITHUB_ACTION_PATH }}
       with:
         script: |
           if [[ -z '${{ inputs.db-context-list }}' ]] ; then
             DB_CONTEXT_LIST=`dotnet ef dbcontext list --no-build -s '${{ inputs.project-dir }}' --configuration '${{ inputs.build-configuration }}' |
-            tr -d "\r" |
-            grep -E "^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$"`
+              tr -d "\r" |
+              grep -E "^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)*$"`
           else
             DB_CONTEXT_LIST=`echo '${{ inputs.db-context-list }}'`
           fi
@@ -67,5 +65,19 @@ runs:
           done
 
           mkdir -p `dirname '${{ inputs.output-file }}'`
-          cat "${SCRIPTS_PATH}/pre-script.sql" ${TEMP_OUTPUT_DIR}/*.sql "${SCRIPTS_PATH}/post-script.sql" > '${{ inputs.output-file }}'
+
+          cat >> '${{ inputs.output-file }}' << EOL
+            SET QUOTED_IDENTIFIER ON;
+            GO
+            BEGIN TRANSACTION;
+            GO
+            EOL
+          
+          cat ${TEMP_OUTPUT_DIR}/*.sql >> '${{ inputs.output-file }}'
+          
+          cat >> '${{ inputs.output-file }}' << EOL
+            COMMIT;
+            GO
+            EOL
+          
           rm -rf ${TEMP_OUTPUT_DIR}
