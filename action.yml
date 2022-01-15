@@ -33,8 +33,10 @@ runs:
         script: dotnet tool install --global dotnet-ef --version '${{ inputs.ef-core-version }}'
     - name: Generate SQL scripts
       uses: EasyDesk/action-dotnet@v1
+      env:
+        SCRIPTS_PATH: ${{ env.GITHUB_ACTION_PATH }}
       with:
-        script:  |
+        script: |
           if [[ -z '${{ inputs.db-context-list }}' ]] ; then
             DB_CONTEXT_LIST=`dotnet ef dbcontext list --no-build -s '${{ inputs.project-dir }}' --configuration '${{ inputs.build-configuration }}' |
             tr -d "\r" |
@@ -65,5 +67,5 @@ runs:
           done
 
           mkdir -p `dirname '${{ inputs.output-file }}'`
-          cat "${GITHUB_ACTION_PATH}/pre-script.sql" ${TEMP_OUTPUT_DIR}/*.sql "${GITHUB_ACTION_PATH}/post-script.sql" > '${{ inputs.output-file }}'
+          cat "${SCRIPTS_PATH}/pre-script.sql" ${TEMP_OUTPUT_DIR}/*.sql "${SCRIPTS_PATH}/post-script.sql" > '${{ inputs.output-file }}'
           rm -rf ${TEMP_OUTPUT_DIR}
