@@ -67,17 +67,17 @@ runs:
           mkdir -p `dirname '${{ inputs.output-file }}'`
 
           cat >> '${{ inputs.output-file }}' << EOL
-            SET QUOTED_IDENTIFIER ON;
-            GO
-            BEGIN TRANSACTION;
-            GO
-            EOL
+          SET QUOTED_IDENTIFIER ON;
+          GO
+          BEGIN TRANSACTION;
+          GO
+          EOL
           
           cat ${TEMP_OUTPUT_DIR}/*.sql >> '${{ inputs.output-file }}'
           
           cat >> '${{ inputs.output-file }}' << EOL
-            COMMIT;
-            GO
-            EOL
+          COMMIT;
+          GO
+          EOL
           
           rm -rf ${TEMP_OUTPUT_DIR}
